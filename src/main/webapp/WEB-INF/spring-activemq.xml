@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:amq="http://activemq.apache.org/schema/core"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://activemq.apache.org/schema/core
+    http://activemq.apache.org/schema/core/activemq-core-5.11.1.xsd">
+
+    <context:annotation-config />
+    <context:property-placeholder location="classpath:activeMq.properties" ignore-unresolvable="true"/>
+
+    <amq:redeliveryPolicy id="amqRedeliveryPolicy" maximumRedeliveries="2" redeliveryDelay="5000"
+                          initialRedeliveryDelay="5000"/>
+    <amq:connectionFactory id="amqConnectionFactory"
+                           brokerURL="${amq.broker}"
+                           userName="${amq.username}"
+                           password="${amq.password}" exclusiveConsumer="true">
+        <property name="redeliveryPolicy" ref="amqRedeliveryPolicy"></property>
+    </amq:connectionFactory>
+
+    <!-- 配置JMS链接工长 -->
+    <bean id="connectionFactory"
+          class="org.springframework.jms.connection.CachingConnectionFactory">
+        <constructor-arg ref="amqConnectionFactory"/>
+        <property name="sessionCacheSize" value="100"/>
+    </bean>
+
+    <!-- 配置JMS模板，Spring提供的JMS工具类，它发送、接收消息。 -->
+    <!-- queue模板 -->
+    <bean id="jmsQueueTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <!-- <property name="defaultDestination" ref="destination" /> -->
+        <property name="receiveTimeout" value="10000"/>
+        <!-- true是topic，false是queue，默认是false，此处显示写出false -->
+        <property name="pubSubDomain" value="false"/>
+    </bean>
+    <!-- topic模板 -->
+    <bean id="jmsTopicTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <property name="receiveTimeout" value="10000"/>
+        <property name="pubSubDomain" value="true"/>
+    </bean>
+
+    <!-- 定义消息队列-->
+    <bean id="receiveData" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg>
+            <value>${amq.receiveData}</value>
+        </constructor-arg>
+    </bean>
+    <bean id="receiveDataListener" class="org.wl.activemq.service.ReceiveDataListener"/>
+    <bean id="receiveDataListenerContainer"
+          class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <property name="destination" ref="receiveData"/>
+        <property name="messageListener" ref="receiveDataListener"/>
+        <property name="sessionTransacted" value="true"></property>
+    </bean>
+</beans>
