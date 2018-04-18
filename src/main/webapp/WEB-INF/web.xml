@@ -15,6 +15,12 @@
             /WEB-INF/spring-*.xml
         </param-value>
     </context-param>
+    <context-param>
+        <param-name>authConfigLocation</param-name>
+        <param-value>
+            /WEB-INF/auth-config.xml
+        </param-value>
+    </context-param>
     <!-- 监听器 -->
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
@@ -25,6 +31,20 @@
             org.springframework.web.context.request.RequestContextListener
         </listener-class>
     </listener>
+
+    <!--自定义auth验证配置-->
+    <listener>
+        <listener-class>org.wl.security.listener.AuthContextListener</listener-class>
+    </listener>
+
+    <filter>
+        <filter-name>authCheck</filter-name>
+        <filter-class>org.wl.security.filter.CheckAuthFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>authCheck</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 
     <!-- 核心servlet配置 -->
     <servlet>

@@ -167,11 +167,11 @@ public class ExceptionAdvice {
      * @param e
      * @return
      */
-    /*@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ResponseEntity internalException(Exception e) {
         System.out.println("Exception");
         System.out.println(e);
         return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR.toString(), MessageText.INTERNAL_SERVER_ERROR.getText());
-    }*/
+    }
 }
